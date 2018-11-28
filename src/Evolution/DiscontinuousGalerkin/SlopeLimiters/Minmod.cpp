@@ -1,6 +1,7 @@
 // Distributed under the MIT License.
 // See LICENSE.txt for details.
 
+//#include "tests/Unit/TestingFramework.hpp"
 #include "Evolution/DiscontinuousGalerkin/SlopeLimiters/Minmod.hpp"
 
 #include <algorithm>
@@ -173,6 +174,16 @@ bool minmod_troubled_cell_indicator(
               .value;
       // Value of epsilon from Hesthaven & Warburton, Chapter 5, in the
       // SlopeLimitN.m code sample.
+      //CAPTURE(*u_mean);
+      //CAPTURE(u_lower);
+      //CAPTURE(u_upper);
+      //CAPTURE(diff_lower);
+      //CAPTURE(diff_upper);
+      //CAPTURE(v_lower);
+      //CAPTURE(v_upper);
+      //CAPTURE(fabs(v_lower - u_lower));
+      //CAPTURE(fabs(v_upper - u_upper));
+      //CHECK(false);
       const double eps = 1.e-8;
       if (fabs(v_lower - u_lower) > eps or fabs(v_upper - u_upper) > eps) {
         u_needs_limiting = true;
@@ -187,6 +198,8 @@ bool minmod_troubled_cell_indicator(
             std::numeric_limits<double>::signaling_NaN();
       }
       // Skip the limiting step for this tensor component
+      //INFO("no limiting because PiN");
+      //CHECK(false);
       return false;
     }
   }  // end if LambdaPiN
@@ -228,6 +241,8 @@ bool minmod_troubled_cell_indicator(
   }
 
   if (not mesh_is_linear or reduce_slopes) {
+    //INFO("limit because mesh is higher-than-linear OR slopes were reduced");
+    //CHECK(false);
     return true;
   } else {
     // (mesh_is_linear and not reduce_slopes)
@@ -236,6 +251,8 @@ bool minmod_troubled_cell_indicator(
       gsl::at(*u_limited_slopes, d) =
           std::numeric_limits<double>::signaling_NaN();
     }
+    //INFO("no limiting because mesh is linear and slopes are OK");
+    //CHECK(false);
     return false;
   }
 }
