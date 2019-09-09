@@ -9,6 +9,7 @@ set(LIBRARY_SOURCES
     KerrSchild.cpp
     Minkowski.cpp
     Tov.cpp
+    TovIsotropic.cpp
     WrappedGr.cpp
     )
 

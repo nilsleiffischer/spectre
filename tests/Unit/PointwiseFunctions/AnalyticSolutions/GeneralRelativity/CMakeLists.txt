@@ -9,6 +9,7 @@ set(LIBRARY_SOURCES
   Test_KerrSchild.cpp
   Test_Minkowski.cpp
   Test_Tov.cpp
+  Test_TovIsotropic.cpp
   Test_WrappedGr.cpp
   )
 
