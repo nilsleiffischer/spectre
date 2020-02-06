@@ -9,10 +9,12 @@ namespace gr {
 namespace Solutions {
 namespace py_bindings {
 void bind_tov(py::module& m);  // NOLINT
+void bind_tov_isotropic(py::module& m);  // NOLINT
 }  // namespace py_bindings
 }  // namespace Solutions
 }  // namespace gr
 
 PYBIND11_MODULE(_PyGeneralRelativitySolutions, m) {  // NOLINT
   gr::Solutions::py_bindings::bind_tov(m);
+  gr::Solutions::py_bindings::bind_tov_isotropic(m);
 }

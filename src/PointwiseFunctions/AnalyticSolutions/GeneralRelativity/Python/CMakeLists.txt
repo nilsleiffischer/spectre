@@ -10,6 +10,7 @@ spectre_python_add_module(
   SOURCES
   Bindings.cpp
   Tov.cpp
+  TovIsotropic.cpp
   )
 
 spectre_python_link_libraries(
