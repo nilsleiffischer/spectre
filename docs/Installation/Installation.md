@@ -8,6 +8,11 @@ This page details the installation procedure for SpECTRE on personal computers.
 For instructions on installing SpECTRE on clusters please refer to the \ref
 installation_on_clusters "Installation on clusters" page.
 
+### Quick-start guide for code development
+
+If you're new to writing code for SpECTRE, a good place to start is our \ref
+dev_guide_quick_start "code development quick-start guide".
+
 ### Dependencies
 
 #### Required:
