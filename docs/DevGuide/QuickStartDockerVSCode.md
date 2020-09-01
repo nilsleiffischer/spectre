@@ -2,11 +2,15 @@
 Distributed under the MIT License.
 See LICENSE.txt for details.
 \endcond
-# Code development quick-start {#dev_guide_quick_start}
+# Code development quick-start with Docker and Visual Studio Code {#dev_guide_quick_start_docker_vscode}
 
 This page describes how to get started developing SpECTRE on Mac, Linux, or
 Windows using [Docker](https://docker.com) and the [Visual Studio
-Code](https://code.visualstudio.com) editor.
+Code](https://code.visualstudio.com) editor. This is a particularly quick way to
+get up and running with SpECTRE code development, though of course not the only
+way. If you prefer setting up your development environment differently, we
+suggest you read the \ref installation "Installation" page. If you would like to
+jump right into a working development environment, read on!
 
 ## Fork the SpECTRE repository on GitHub
 
@@ -36,6 +40,24 @@ https://github.com/YOURNAME/spectre). Follow GitHub's instructions to clone the
 repository to your computer, selecting the SSH option:
 
 - [Cloning a repository](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository)
+
+## Enable the development environment in the repository
+
+The development environment is included in the repository, but not enabled by
+default. To enable it, copy or symlink the directory
+`support/DevEnvironments/.devcontainer` to the repository root. This is easiest
+done with the command line. Navigate into the repository that you just cloned to
+your computer:
+
+```
+cd spectre
+```
+
+Now symlink the development environment:
+
+```
+ln -s support/DevEnvironments/.devcontainer .devcontainer
+```
 
 ## Install Docker
 
