@@ -30,8 +30,8 @@ jobs:
       # https://github.com/sxs-collaboration/spectre/issues/2131
       SPECTRE_BREW_DEPS: >-
         cmake ccache autoconf automake openblas catch2 gsl jemalloc hdf5
-        yaml-cpp
-      SPECTRE_PY_DEPS: numpy scipy h5py pybind11
+        yaml-cpp pybind11
+      SPECTRE_PY_DEPS: numpy scipy h5py
       # We install `boost@1.72.0` via Spack since later versions of Boost have a
       # conflict with Charm++ v6.10.2. Details:
       # https://github.com/sxs-collaboration/spectre/issues/2468
@@ -51,9 +51,10 @@ jobs:
       # and cache them. We make sure to install only prebuilt "bottles" by
       # fetching them first.
       - name: Install Homebrew dependencies
-        run: >
-          brew fetch --deps --retry $SPECTRE_BREW_DEPS
-          && brew install $SPECTRE_BREW_DEPS
+        run: |
+          brew fetch --deps --retry $SPECTRE_BREW_DEPS \
+            && brew install $SPECTRE_BREW_DEPS
+          brew list
       # Load an existing Python environment and install Python dependencies.
       - name: Setup Python
         uses: actions/setup-python@v2
@@ -74,14 +75,16 @@ jobs:
         if: steps.restore-dependencies.outputs.cache-hit != 'true'
         run: |
           mkdir -p $HOME/dependencies/spack
-      # Install the remaining dependencies using Spack if possible. We install
-      # them in an environment that we can activate later. To avoid re-building
-      # packages that are already installed by Homebrew we let Spack find them
-      # and flag them as not-buildable. Pre-built Spack dependencies from the
-      # cache are used if available by adding the cache as a Spack mirror.
-      - name: Install Spack dependencies
+      # Install Spack to build the remaining dependencies from source. To avoid
+      # re-building packages that are already installed by Homebrew we let Spack
+      # find them and flag them as not-buildable.
+      - name: Install and configure Spack
         run: |
           cd $HOME
+          git clone https://github.com/spack/spack.git
+          source ./spack/share/spack/setup-env.sh
+          spack debug report
+          spack compiler find && spack compiler list
           mkdir -p .spack
           SPACK_PACKAGES=.spack/packages.yaml
           echo "packages:" > $SPACK_PACKAGES
@@ -94,21 +97,21 @@ jobs:
           echo "    externals:" >> $SPACK_PACKAGES
           echo "      - spec: openblas" >> $SPACK_PACKAGES
           echo "        prefix: $(brew --prefix openblas)" >> $SPACK_PACKAGES
-          git clone https://github.com/spack/spack.git
-          source ./spack/share/spack/setup-env.sh
-          spack compiler find && spack compiler list
+          echo "  python:" >> $SPACK_PACKAGES
+          echo "    version: [3.8]" >> $SPACK_PACKAGES
           spack external find --not-buildable && spack config get packages
-          spack mirror add dependencies file://$HOME/dependencies/spack
+      # Install the remaining dependencies from source with Spack. We install
+      # them in an environment that we can activate later. Pre-built Spack
+      # dependencies from the cache are used if available by adding the cache as
+      # a Spack mirror. After building the dependencies from source we cache
+      # them as compressed tarballs.
+      - name: Install Spack dependencies
+        run: |
+          source $HOME/spack/share/spack/setup-env.sh
           spack env create spectre && spack env activate spectre
           spack install -j4 --no-check-signature $SPECTRE_SPACK_DEPS
           spack find -v
-      # After building the dependencies from source we cache them as compressed
-      # tarballs.
-      - name: Package built Spack dependencies for caching
-        run: |
-          cd $HOME
-          source ./spack/share/spack/setup-env.sh
-          spack env activate spectre
+          spack mirror add dependencies file://$HOME/dependencies/spack
           spack buildcache create -uf -m dependencies $SPECTRE_SPACK_DEPS
       # Install Charm++ separately. We can install it via Spack once a package
       # version greater than 6.10.2 is available, since that fixes
@@ -123,6 +126,7 @@ jobs:
           # This is the commit that fixed #2397
           git checkout e7e9d4b5b27608b89ab09f021b6b5194267f74fe
           ./build charm++ multicore-darwin-x86_64 clang -j4
+          echo "CHARM_ROOT=$PWD/multicore-darwin-x86_64-clang" >> $GITHUB_ENV
       # Replace the ccache directory that building the dependencies may have
       # generated with the cached ccache directory.
       - name: Clear ccache from dependencies
@@ -141,34 +145,32 @@ jobs:
       # `Tests.yaml`. for details. We increase the timeout for tests because
       # `ctest` on the GitHub-hosted macOS VMs appears to be quite slow.
       - name: Configure build with cmake
-        run: >
+        run: |
           mkdir build && cd build
-
           source $HOME/spack/share/spack/setup-env.sh
-
           spack env activate spectre
-
-          cmake
-          -D CMAKE_C_COMPILER=clang
-          -D CMAKE_CXX_COMPILER=clang++
-          -D CMAKE_Fortran_COMPILER=gfortran
-          -D CMAKE_CXX_FLAGS="-Werror"
-          -D OVERRIDE_ARCH=x86-64
-          -D CHARM_ROOT=$HOME/dependencies/charm/multicore-darwin-x86_64-clang
-          -D BLAS_ROOT=$(brew --prefix openblas)
-          -D MACOSX_MIN=10.11
-          -D CMAKE_BUILD_TYPE=Debug
-          -D DEBUG_SYMBOLS=OFF
-          -D RUN_TESTS_IN_TEST_EXECUTABLES=OFF
-          -D STUB_EXECUTABLE_OBJECT_FILES=ON
-          -D STUB_LIBRARY_OBJECT_FILES=ON
-          -D USE_PCH=ON
-          -D USE_CCACHE=ON
-          -D BUILD_PYTHON_BINDINGS=ON
-          -D SPECTRE_UNIT_TEST_TIMEOUT_FACTOR=5
-          -D SPECTRE_INPUT_FILE_TEST_TIMEOUT_FACTOR=5
-          -D SPECTRE_PYTHON_TEST_TIMEOUT_FACTOR=5
-          $GITHUB_WORKSPACE
+          cmake \
+            -D CMAKE_C_COMPILER=clang \
+            -D CMAKE_CXX_COMPILER=clang++ \
+            -D CMAKE_Fortran_COMPILER=gfortran \
+            -D CMAKE_CXX_FLAGS="-Werror" \
+            -D OVERRIDE_ARCH=x86-64 \
+            -D BUILD_PYTHON_BINDINGS=ON \
+            -D MEMORY_ALLOCATOR=SYSTEM \
+            -D CHARM_ROOT=$CHARM_ROOT \
+            -D BLAS_ROOT=$(brew --prefix openblas) \
+            -D MACOSX_MIN=10.11 \
+            -D CMAKE_BUILD_TYPE=Debug \
+            -D DEBUG_SYMBOLS=OFF \
+            -D RUN_TESTS_IN_TEST_EXECUTABLES=OFF \
+            -D STUB_EXECUTABLE_OBJECT_FILES=ON \
+            -D STUB_LIBRARY_OBJECT_FILES=ON \
+            -D USE_PCH=ON \
+            -D USE_CCACHE=ON \
+            -D SPECTRE_UNIT_TEST_TIMEOUT_FACTOR=5 \
+            -D SPECTRE_INPUT_FILE_TEST_TIMEOUT_FACTOR=5 \
+            -D SPECTRE_PYTHON_TEST_TIMEOUT_FACTOR=5 \
+            $GITHUB_WORKSPACE
       - name: Build tests
         working-directory: build
         run: |
