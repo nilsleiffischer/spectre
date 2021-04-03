@@ -428,6 +428,10 @@ class BinaryCompactObject : public DomainCreator<3> {
       std::string,
       std::unique_ptr<domain::FunctionsOfTime::FunctionOfTime>> override;
 
+  std::vector<std::string> block_names() const noexcept override;
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+  block_groups() const noexcept override;
+
  private:
   Object object_A_{};
   Object object_B_{};
@@ -449,6 +453,9 @@ class BinaryCompactObject : public DomainCreator<3> {
       time_dependence_;
   std::unique_ptr<domain::BoundaryConditions::BoundaryCondition>
       outer_boundary_condition_;
+  std::vector<std::string> block_names_{};
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+      block_groups_{};
 };
 }  // namespace creators
 }  // namespace domain

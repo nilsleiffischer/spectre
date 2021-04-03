@@ -133,4 +133,13 @@ RotatedRectangles::initial_refinement_levels() const noexcept {
   const size_t& y_0 = initial_refinement_level_xy_[1];
   return {{{x_0, y_0}}, {{x_0, y_0}}, {{y_0, x_0}}, {{y_0, x_0}}};
 }
+
+std::vector<std::string> RotatedRectangles::block_names() const noexcept {
+  return block_names_;
+}
+
+std::unordered_map<std::string, std::unordered_set<std::string>>
+RotatedRectangles::block_groups() const noexcept {
+  return block_groups_;
+}
 }  // namespace domain::creators

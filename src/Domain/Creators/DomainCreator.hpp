@@ -8,6 +8,8 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "DataStructures/Tensor/IndexType.hpp"
 #include "Utilities/ConstantExpressions.hpp"
@@ -99,6 +101,16 @@ class DomainCreator {
   virtual ~DomainCreator() = default;
 
   virtual Domain<VolumeDim> create_domain() const = 0;
+
+  /// A human-readable name for every block, e.g. to reference blocks in
+  /// input-file options.
+  virtual std::vector<std::string> block_names() const noexcept = 0;
+
+  /// A set of named groups of blocks, e.g. a set of blocks named "East",
+  /// "West", "North" and "South" could be named "Wedges" for easier reference.
+  /// Blocks can belong in any number of groups.
+  virtual std::unordered_map<std::string, std::unordered_set<std::string>>
+  block_groups() const noexcept = 0;
 
   /// Obtain the initial grid extents of the Element%s in each block.
   virtual std::vector<std::array<size_t, VolumeDim>> initial_extents() const

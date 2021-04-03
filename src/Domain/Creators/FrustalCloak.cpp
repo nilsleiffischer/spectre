@@ -104,4 +104,13 @@ std::vector<std::array<size_t, 3>> FrustalCloak::initial_refinement_levels()
     const noexcept {
   return {10, make_array<3>(initial_refinement_level_)};
 }
+
+std::vector<std::string> FrustalCloak::block_names() const noexcept {
+  return block_names_;
+}
+
+std::unordered_map<std::string, std::unordered_set<std::string>>
+FrustalCloak::block_groups() const noexcept {
+  return block_groups_;
+}
 }  // namespace domain::creators

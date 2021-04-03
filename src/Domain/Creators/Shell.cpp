@@ -146,4 +146,13 @@ std::vector<std::array<size_t, 3>> Shell::initial_refinement_levels() const
   }
   return {num_wedges, make_array<3>(initial_refinement_)};
 }
+
+std::vector<std::string> Shell::block_names() const noexcept {
+  return block_names_;
+}
+
+std::unordered_map<std::string, std::unordered_set<std::string>>
+Shell::block_groups() const noexcept {
+  return block_groups_;
+}
 }  // namespace domain::creators

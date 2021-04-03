@@ -219,6 +219,14 @@ class AlignedLattice : public DomainCreator<VolumeDim> {
   std::vector<std::array<size_t, VolumeDim>> initial_refinement_levels() const
       noexcept override;
 
+  std::vector<std::string> block_names() const noexcept override;
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+  block_groups() const noexcept override;
+
+  std::vector<std::string> block_names() const noexcept override;
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+  block_groups() const noexcept override;
+
  private:
   typename BlockBounds::type block_bounds_{
       make_array<VolumeDim, std::vector<double>>({})};
@@ -233,6 +241,9 @@ class AlignedLattice : public DomainCreator<VolumeDim> {
   Index<VolumeDim> number_of_blocks_by_dim_{};
   std::unique_ptr<domain::BoundaryConditions::BoundaryCondition>
       boundary_condition_{};
+  std::vector<std::string> block_names_{};
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+      block_groups_{};
 };
 }  // namespace creators
 }  // namespace domain

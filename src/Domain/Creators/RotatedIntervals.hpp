@@ -155,6 +155,10 @@ class RotatedIntervals : public DomainCreator<1> {
   std::vector<std::array<size_t, 1>> initial_refinement_levels() const
       noexcept override;
 
+  std::vector<std::string> block_names() const noexcept override;
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+  block_groups() const noexcept override;
+
  private:
   typename LowerBound::type lower_x_{
       {std::numeric_limits<double>::signaling_NaN()}};
@@ -171,6 +175,9 @@ class RotatedIntervals : public DomainCreator<1> {
       lower_boundary_condition_{nullptr};
   std::unique_ptr<domain::BoundaryConditions::BoundaryCondition>
       upper_boundary_condition_{nullptr};
+  std::vector<std::string> block_names_{};
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+      block_groups_{};
 };
 }  // namespace creators
 }  // namespace domain

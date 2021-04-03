@@ -140,6 +140,10 @@ class Rectangle : public DomainCreator<2> {
       std::string,
       std::unique_ptr<domain::FunctionsOfTime::FunctionOfTime>> override;
 
+  std::vector<std::string> block_names() const noexcept override;
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+  block_groups() const noexcept override;
+
  private:
   typename LowerBound::type lower_xy_{};
   typename UpperBound::type upper_xy_{};
@@ -150,6 +154,9 @@ class Rectangle : public DomainCreator<2> {
       time_dependence_{nullptr};
   std::unique_ptr<domain::BoundaryConditions::BoundaryCondition>
       boundary_condition_{nullptr};
+  std::vector<std::string> block_names_{};
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+      block_groups_{};
 };
 }  // namespace creators
 }  // namespace domain

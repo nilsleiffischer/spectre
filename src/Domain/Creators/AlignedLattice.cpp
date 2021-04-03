@@ -236,6 +236,18 @@ AlignedLattice<VolumeDim>::initial_refinement_levels() const noexcept {
                                   refined_refinement_);
 }
 
+template <size_t VolumeDim>
+std::vector<std::string> AlignedLattice<VolumeDim>::block_names()
+    const noexcept {
+  return block_names_;
+}
+
+template <size_t VolumeDim>
+std::unordered_map<std::string, std::unordered_set<std::string>>
+AlignedLattice<VolumeDim>::block_groups() const noexcept {
+  return block_groups_;
+}
+
 template class AlignedLattice<1>;
 template class AlignedLattice<2>;
 template class AlignedLattice<3>;

@@ -150,6 +150,10 @@ class FrustalCloak : public DomainCreator<3> {
   std::vector<std::array<size_t, 3>> initial_refinement_levels() const
       noexcept override;
 
+  std::vector<std::string> block_names() const noexcept override;
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+  block_groups() const noexcept override;
+
  private:
   typename InitialRefinement::type initial_refinement_level_{};
   typename InitialGridPoints::type initial_number_of_grid_points_{};
@@ -160,6 +164,9 @@ class FrustalCloak : public DomainCreator<3> {
   typename OriginPreimage::type origin_preimage_{{0.0, 0.0, 0.0}};
   std::unique_ptr<domain::BoundaryConditions::BoundaryCondition>
       boundary_condition_;
+  std::vector<std::string> block_names_{};
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+      block_groups_{};
 };
 }  // namespace creators
 }  // namespace domain

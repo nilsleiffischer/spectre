@@ -150,6 +150,10 @@ class Interval : public DomainCreator<1> {
       std::string,
       std::unique_ptr<domain::FunctionsOfTime::FunctionOfTime>> override;
 
+  std::vector<std::string> block_names() const noexcept override;
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+  block_groups() const noexcept override;
+
  private:
   typename LowerBound::type lower_x_{};
   typename UpperBound::type upper_x_{};
@@ -162,6 +166,9 @@ class Interval : public DomainCreator<1> {
       upper_boundary_condition_;
   std::unique_ptr<domain::creators::time_dependence::TimeDependence<1>>
       time_dependence_;
+  std::vector<std::string> block_names_{};
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+      block_groups_{};
 };
 }  // namespace creators
 }  // namespace domain

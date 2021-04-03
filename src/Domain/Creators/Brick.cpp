@@ -152,4 +152,13 @@ Brick::functions_of_time() const noexcept {
     return time_dependence_->functions_of_time();
   }
 }
+
+std::vector<std::string> Brick::block_names() const noexcept {
+  return block_names_;
+}
+
+std::unordered_map<std::string, std::unordered_set<std::string>>
+Brick::block_groups() const noexcept {
+  return block_groups_;
+}
 }  // namespace domain::creators

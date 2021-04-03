@@ -147,4 +147,13 @@ std::vector<std::array<size_t, 2>> Disk::initial_refinement_levels()
     const noexcept {
   return {5, make_array<2>(initial_refinement_)};
 }
+
+std::vector<std::string> Disk::block_names() const noexcept {
+  return block_names_;
+}
+
+std::unordered_map<std::string, std::unordered_set<std::string>>
+Disk::block_groups() const noexcept {
+  return block_groups_;
+}
 }  // namespace domain::creators

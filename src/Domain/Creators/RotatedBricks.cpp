@@ -159,4 +159,13 @@ std::vector<std::array<size_t, 3>> RotatedBricks::initial_refinement_levels()
           {{y_0, z_0, x_0}}, {{y_0, x_0, z_0}}, {{z_0, x_0, y_0}},
           {{y_0, z_0, x_0}}, {{x_0, y_0, z_0}}};
 }
+
+std::vector<std::string> RotatedBricks::block_names() const noexcept {
+  return block_names_;
+}
+
+std::unordered_map<std::string, std::unordered_set<std::string>>
+RotatedBricks::block_groups() const noexcept {
+  return block_groups_;
+}
 }  // namespace domain::creators

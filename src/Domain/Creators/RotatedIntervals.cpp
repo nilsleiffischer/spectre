@@ -117,8 +117,17 @@ std::vector<std::array<size_t, 1>> RotatedIntervals::initial_extents() const
 }
 
 std::vector<std::array<size_t, 1>>
-RotatedIntervals ::initial_refinement_levels() const noexcept {
+RotatedIntervals::initial_refinement_levels() const noexcept {
   return {{{initial_refinement_level_x_[0]}},
           {{initial_refinement_level_x_[0]}}};
+}
+
+std::vector<std::string> RotatedIntervals::block_names() const noexcept {
+  return block_names_;
+}
+
+std::unordered_map<std::string, std::unordered_set<std::string>>
+RotatedIntervals::block_groups() const noexcept {
+  return block_groups_;
 }
 }  // namespace domain::creators
