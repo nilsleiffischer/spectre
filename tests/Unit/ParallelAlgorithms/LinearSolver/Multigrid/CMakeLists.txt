@@ -23,3 +23,30 @@ target_link_libraries(
   ParallelMultigrid
   Utilities
   )
+
+add_distributed_linear_solver_algorithm_test("MultigridAlgorithm")
+target_link_libraries(
+  Test_MultigridAlgorithm
+  PRIVATE
+  ParallelMultigrid
+  )
+
+add_test(
+  NAME Integration.LinearSolver.MultigridAlgorithmMassive
+  COMMAND ${CMAKE_BINARY_DIR}/bin/Test_MultigridAlgorithm --input-file
+  ${CMAKE_CURRENT_SOURCE_DIR}/Test_MultigridAlgorithmMassive.yaml
+  )
+set_tests_properties(
+  Integration.LinearSolver.MultigridAlgorithmMassive
+  PROPERTIES
+  TIMEOUT 5
+  LABELS "integration"
+  ENVIRONMENT "ASAN_OPTIONS=detect_leaks=0")
+
+add_distributed_linear_solver_algorithm_test(
+  "MultigridPreconditionedGmresAlgorithm")
+target_link_libraries(
+  Test_MultigridPreconditionedGmresAlgorithm
+  PRIVATE
+  ParallelMultigrid
+  )
