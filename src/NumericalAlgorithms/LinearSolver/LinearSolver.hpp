@@ -76,7 +76,7 @@ class LinearSolver : public PUP::able {
             typename... Args>
   Convergence::HasConverged solve(
       gsl::not_null<VarsType*> initial_guess_in_solution_out,
-      const LinearOperator& linear_operator, const SourceType& source,
+      LinearOperator&& linear_operator, const SourceType& source,
       Args&&... args) const noexcept;
 
   /// Discard caches from previous solves. Use before solving a different linear
@@ -95,7 +95,7 @@ template <typename LinearOperator, typename VarsType, typename SourceType,
           typename... Args>
 Convergence::HasConverged LinearSolver<LinearSolverRegistrars>::solve(
     const gsl::not_null<VarsType*> initial_guess_in_solution_out,
-    const LinearOperator& linear_operator, const SourceType& source,
+    LinearOperator&& linear_operator, const SourceType& source,
     Args&&... args) const noexcept {
   return call_with_dynamic_type<Convergence::HasConverged, creatable_classes>(
       this, [&initial_guess_in_solution_out, &linear_operator, &source,
