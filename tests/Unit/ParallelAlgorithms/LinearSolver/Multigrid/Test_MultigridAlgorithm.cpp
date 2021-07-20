@@ -53,6 +53,7 @@ struct Metavariables {
       TestHelpers::domain::BoundaryConditions::SystemWithoutBoundaryConditions<
           volume_dim>;
 
+  // [setup_smoother]
   using multigrid = LinearSolver::multigrid::Multigrid<
       volume_dim, helpers_mg::fields_tag, MultigridSolver,
       helpers_mg::OperatorIsMassive, helpers_mg::sources_tag>;
@@ -61,6 +62,7 @@ struct Metavariables {
       typename multigrid::smooth_fields_tag, RichardsonSmoother,
       typename multigrid::smooth_source_tag,
       LinearSolver::multigrid::Tags::MultigridLevel>;
+  // [setup_smoother]
 
   using Phase = helpers::Phase;
 
@@ -74,6 +76,7 @@ struct Metavariables {
                                       typename smoother::register_element,
                                       Parallel::Actions::TerminatePhase>;
 
+  // [action_list]
   template <typename Label>
   using smooth_actions = tmpl::list<
       helpers_mg::ComputeOperatorAction<typename smoother::fields_tag>,
@@ -86,6 +89,7 @@ struct Metavariables {
                      smooth_actions<LinearSolver::multigrid::VcycleDownLabel>,
                      smooth_actions<LinearSolver::multigrid::VcycleUpLabel>>,
                  Parallel::Actions::TerminatePhase>;
+  // [action_list]
 
   using test_actions =
       tmpl::list<helpers_mg::TestResult<typename multigrid::options_group>>;

@@ -33,14 +33,14 @@ struct VcycleUpLabel {};
  *
  * This linear solver iteratively corrects an initial guess \f$x_0\f$ by
  * restricting the residual \f$b - Ax\f$ to a series of coarser grids, solving
- * for a correction on the coarser grids, and then prolongating the correction
- * back to the finer grids. The solves on grids with different scales can very
- * effectively solve large-scale modes in the solution, which Krylov-type linear
- * solvers such as GMRES or Conjugate Gradients typically struggle with.
- * Therefore, a multigrid solver can be an effective preconditioner for
- * Krylov-type linear solvers (see `LinearSolver::gmres::Gmres` and
- * `LinearSolver::cg::ConjugateGradient`). See \cite Briggs2000jp for an
- * introduction to multigrid methods.
+ * for a correction on the coarser grids, and then prolongating (interpolating)
+ * the correction back to the finer grids. The solves on grids with different
+ * scales can very effectively solve large-scale modes in the solution, which
+ * Krylov-type linear solvers such as GMRES or Conjugate Gradients typically
+ * struggle with. Therefore, a multigrid solver can be an effective
+ * preconditioner for Krylov-type linear solvers (see
+ * `LinearSolver::gmres::Gmres` and `LinearSolver::cg::ConjugateGradient`). See
+ * \cite Briggs2000jp for an introduction to multigrid methods.
  *
  * \par Grid hierarchy
  * This geometric multigrid solver relies on a strategy to coarsen the
@@ -78,7 +78,14 @@ struct VcycleUpLabel {};
  * `solve` leave the `smooth_fields_tag` in a state that represents an
  * approximate solution to the `smooth_source_tag`, and that
  * `db::add_tag_prefix<LinearSolver::Tags::OperatorAppliedTo,
- * smooth_fields_tag>` is left up-to-date as well.
+ * smooth_fields_tag>` is left up-to-date as well. Here's an example of setting
+ * up a smoother for the multigrid solver:
+ *
+ * \snippet Test_MultigridAlgorithm.cpp setup_smoother
+ *
+ * The smoother can be used to construct an action list like this:
+ *
+ * \snippet Test_MultigridAlgorithm.cpp action_list
  *
  * \par Algorithm overview
  * Every iteration of the multigrid algorithm performs a V-cycle over the grid

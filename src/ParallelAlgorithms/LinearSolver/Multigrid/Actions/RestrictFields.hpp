@@ -5,22 +5,32 @@
 
 #include <cstddef>
 #include <map>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
+#include "DataStructures/ApplyMatrices.hpp"
 #include "DataStructures/DataBox/DataBox.hpp"
 #include "DataStructures/DataBox/PrefixHelpers.hpp"
 #include "DataStructures/FixedHashMap.hpp"
 #include "Domain/Structure/ChildSize.hpp"
 #include "Domain/Structure/ElementId.hpp"
+#include "Domain/Tags.hpp"
 #include "IO/Logging/Tags.hpp"
+#include "IO/Logging/Verbosity.hpp"
 #include "IO/Observer/Tags.hpp"
 #include "NumericalAlgorithms/Convergence/Tags.hpp"
 #include "NumericalAlgorithms/Spectral/Projection.hpp"
 #include "Parallel/GlobalCache.hpp"
 #include "Parallel/InboxInserters.hpp"
+#include "Parallel/Invoke.hpp"
+#include "Parallel/Printf.hpp"
 #include "ParallelAlgorithms/LinearSolver/Multigrid/Tags.hpp"
 #include "ParallelAlgorithms/LinearSolver/Tags.hpp"
 #include "Utilities/ConstantExpressions.hpp"
+#include "Utilities/ErrorHandling/Assert.hpp"
 #include "Utilities/GetOutput.hpp"
+#include "Utilities/Gsl.hpp"
 #include "Utilities/TMPL.hpp"
 #include "Utilities/TaggedTuple.hpp"
 
@@ -72,6 +82,9 @@ template <typename... FieldsTags, typename OptionsGroup,
 struct SendFieldsToCoarserGrid<tmpl::list<FieldsTags...>, OptionsGroup,
                                FieldsAreMassiveTag,
                                tmpl::list<ReceiveTags...>> {
+  using const_global_cache_tags =
+      tmpl::list<logging::Tags::Verbosity<OptionsGroup>>;
+
   template <typename DbTagsList, typename... InboxTags, typename Metavariables,
             size_t Dim, typename ActionList, typename ParallelComponent>
   static std::tuple<db::DataBox<DbTagsList>&&> apply(
@@ -156,6 +169,8 @@ struct ReceiveFieldsFromFinerGrid<Dim, FieldsTags, OptionsGroup,
                                   tmpl::list<ReceiveTags...>> {
   using inbox_tags =
       tmpl::list<DataFromChildrenInboxTag<Dim, tmpl::list<ReceiveTags...>>>;
+  using const_global_cache_tags =
+      tmpl::list<logging::Tags::Verbosity<OptionsGroup>>;
 
   template <typename DbTagsList, typename... InboxTags, typename Metavariables,
             typename ActionList, typename ParallelComponent>

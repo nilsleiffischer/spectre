@@ -110,11 +110,12 @@ struct InitializeElement {
     auto inertial_coords = element_map(logical_coords);
     // Initialize data
     const size_t element_index = helpers_distributed::get_index(element_id);
-    const size_t mg_lev = element_id.grid_index();
+    const size_t multigrid_level = element_id.grid_index();
     const auto& source =
-        mg_lev == 0 ? typename sources_tag::type(gsl::at(
-                          get<helpers_distributed::Source>(box), element_index))
-                    : typename sources_tag::type{};
+        multigrid_level == 0
+            ? typename sources_tag::type(
+                  gsl::at(get<helpers_distributed::Source>(box), element_index))
+            : typename sources_tag::type{};
     const size_t num_points = mesh.number_of_grid_points();
     auto initial_fields = typename fields_tag::type{num_points, 0.};
     Initialization::mutate_assign<simple_tags>(
@@ -145,9 +146,9 @@ struct ComputeOperatorAction {
         const Parallel::GlobalCache<Metavariables>& /*cache*/,
         const ElementId<1>& element_id, const ActionList /*meta*/,
         const ParallelComponent* const /*meta*/) noexcept {
-    const size_t mg_lev = element_id.grid_index();
+    const size_t multigrid_level = element_id.grid_index();
     const size_t element_index = helpers_distributed::get_index(element_id);
-    const auto& operator_matrices = get<LinearOperator>(box)[mg_lev];
+    const auto& operator_matrices = get<LinearOperator>(box)[multigrid_level];
     const size_t number_of_elements = operator_matrices.size();
     const auto& linear_operator = gsl::at(operator_matrices, element_index);
     const size_t number_of_grid_points = linear_operator.columns();
@@ -155,6 +156,8 @@ struct ComputeOperatorAction {
 
     typename OperandTag::type operator_applied_to_operand{
         number_of_grid_points * number_of_elements};
+    // Could use apply_matrices here once it works with `DenseMatrix`, or
+    // `Matrix` is option-creatable
     dgemv_('N', linear_operator.rows(), linear_operator.columns(), 1,
            linear_operator.data(), linear_operator.spacing(), operand.data(), 1,
            0, operator_applied_to_operand.data(), 1);
@@ -166,7 +169,7 @@ struct ComputeOperatorAction {
         Parallel::ReductionData<
             Parallel::ReductionDatum<typename OperandTag::type, funcl::Plus<>>,
             Parallel::ReductionDatum<size_t, funcl::AssertEqual<>>>{
-            operator_applied_to_operand, mg_lev},
+            operator_applied_to_operand, multigrid_level},
         section.proxy()[element_id], section.proxy(), make_not_null(&section));
 
     // Pause algorithm for now. The reduction will be broadcast to the next
@@ -184,37 +187,43 @@ struct CollectOperatorAction {
             typename Metavariables, typename ScalarFieldOperandTag,
             Requires<tmpl::list_contains_v<
                 DbTagsList, local_operator_applied_to_operand_tag>> = nullptr>
-  static void apply(
-      db::DataBox<DbTagsList>& box, Parallel::GlobalCache<Metavariables>& cache,
-      const ElementId<1>& element_id,
-      const Variables<tmpl::list<ScalarFieldOperandTag>>& Ap_global_data,
-      const size_t broadcasting_mg_lev) noexcept {
+  static void apply(db::DataBox<DbTagsList>& box,
+                    Parallel::GlobalCache<Metavariables>& cache,
+                    const ElementId<1>& element_id,
+                    const Variables<tmpl::list<ScalarFieldOperandTag>>&
+                        operator_applied_to_operand_global_data,
+                    const size_t broadcasting_multigrid_level) noexcept {
     // We're receiving broadcasts also from reductions over other sections. See
     // issue: https://github.com/sxs-collaboration/spectre/issues/3220
-    const size_t mg_lev = element_id.grid_index();
-    if (mg_lev != broadcasting_mg_lev) {
+    const size_t multigrid_level = element_id.grid_index();
+    if (multigrid_level != broadcasting_multigrid_level) {
       return;
     }
     const size_t element_index = helpers_distributed::get_index(element_id);
     // This could be generalized to work on the Variables instead of the
     // Scalar, but it's only for the purpose of this test.
     const size_t number_of_grid_points =
-        get<LinearOperator>(box)[mg_lev][0].columns();
-    const auto& Ap_global = get<ScalarFieldOperandTag>(Ap_global_data).get();
-    DataVector Ap_local{number_of_grid_points};
-    std::copy(Ap_global.begin() +
+        get<LinearOperator>(box)[multigrid_level][0].columns();
+    const auto& operator_applied_to_operand_global =
+        get<ScalarFieldOperandTag>(operator_applied_to_operand_global_data)
+            .get();
+    DataVector operator_applied_to_operand_local{number_of_grid_points};
+    std::copy(operator_applied_to_operand_global.begin() +
                   static_cast<int>(element_index * number_of_grid_points),
-              Ap_global.begin() +
+              operator_applied_to_operand_global.begin() +
                   static_cast<int>((element_index + 1) * number_of_grid_points),
-              Ap_local.begin());
+              operator_applied_to_operand_local.begin());
     db::mutate<local_operator_applied_to_operand_tag>(
         make_not_null(&box),
-        [&Ap_local, &number_of_grid_points](auto Ap) noexcept {
-          *Ap = typename local_operator_applied_to_operand_tag::type{
-              number_of_grid_points};
+        [&operator_applied_to_operand_local,
+         &number_of_grid_points](auto operator_applied_to_operand) noexcept {
+          *operator_applied_to_operand =
+              typename local_operator_applied_to_operand_tag::type{
+                  number_of_grid_points};
           get(get<
               ::LinearSolver::Tags::OperatorAppliedTo<ScalarFieldOperandTag>>(
-              *Ap)) = Ap_local;
+              *operator_applied_to_operand)) =
+              operator_applied_to_operand_local;
         });
     // Proceed with algorithm
     Parallel::get_parallel_component<ParallelComponent>(cache)[element_id]
