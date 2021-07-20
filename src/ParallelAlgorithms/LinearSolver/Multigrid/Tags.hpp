@@ -6,12 +6,12 @@
 #include <array>
 #include <cstddef>
 #include <optional>
+#include <string>
 #include <unordered_set>
 #include <vector>
 
 #include "DataStructures/DataBox/PrefixHelpers.hpp"
 #include "DataStructures/DataBox/Tag.hpp"
-#include "DataStructures/Matrix.hpp"
 #include "DataStructures/Variables.hpp"
 #include "Domain/Tags.hpp"
 #include "NumericalAlgorithms/Spectral/Mesh.hpp"
