@@ -50,3 +50,5 @@ target_link_libraries(
   PRIVATE
   ParallelMultigrid
   )
+
+add_subdirectory(Actions)
